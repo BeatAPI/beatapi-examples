@@ -5,13 +5,11 @@
 Do not open a public issue for vulnerabilities, exposed API keys, authentication
 problems, webhook bypasses, credit issues, or customer data.
 
-Report security concerns privately by emailing support@beatapi.io. Include the
-affected endpoint, impact, reproduction steps, and relevant request IDs. Remove
-API keys, webhook secrets, personal data, and private media URLs from the
-report.
-
-GitHub private vulnerability reporting can be enabled when this repository
-becomes public. Until then, do not use a public issue for a security report.
+Report security concerns through
+[GitHub private vulnerability reporting](https://github.com/erickkkyt/beatapi-examples/security/advisories/new)
+or by emailing support@beatapi.io. Include the affected endpoint, impact,
+reproduction steps, and relevant request IDs. Remove API keys, webhook secrets,
+personal data, and private media URLs from the report.
 
 ## API key exposure
 
