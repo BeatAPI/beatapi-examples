@@ -105,5 +105,5 @@
 1. Review `git diff --check`, tracked files, and secret scans.
 2. Run the full verification suite.
 3. Commit the repository.
-4. Create private `erickkkyt/beatapi-examples`.
+4. Create private `BeatAPI/beatapi-examples`.
 5. Push `main` and verify remote visibility and Actions state.

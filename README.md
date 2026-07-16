@@ -2,7 +2,7 @@
 
 Official runnable examples for the BeatAPI async AI video API.
 
-[![Verify examples](https://github.com/erickkkyt/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/erickkkyt/beatapi-examples/actions/workflows/verify.yml)
+[![Verify examples](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml)
 
 [Website](https://beatapi.io/) ·
 [API documentation](https://docs.beatapi.io/) ·
