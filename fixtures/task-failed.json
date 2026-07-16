@@ -1,0 +1,20 @@
+{
+  "data": {
+    "id": "task_8K2qA",
+    "object": "task",
+    "workflow": "music-video",
+    "status": "failed",
+    "stage": "generation",
+    "error_code": "generation_failed",
+    "error_message": "No usable video output was produced.",
+    "created_at": "2026-07-16T08:00:00.000Z",
+    "updated_at": "2026-07-16T08:01:21.000Z",
+    "completed_at": "2026-07-16T08:01:21.000Z",
+    "output": null,
+    "usage": {
+      "credits_charged": 50,
+      "credits_refunded": 50
+    },
+    "request_id": "req_example_failed"
+  }
+}

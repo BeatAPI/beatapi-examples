@@ -1,0 +1,34 @@
+name: Example request
+description: Suggest a new runtime, framework, or integration example.
+title: "[Example]: "
+labels:
+  - enhancement
+body:
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime or integration
+      placeholder: Go, Cloudflare Workers, Make, Zapier
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Developer use case
+      description: Describe the smallest useful workflow this example should show.
+    validations:
+      required: true
+  - type: dropdown
+    id: endpoint
+    attributes:
+      label: Primary API area
+      options:
+        - Music Video
+        - Ecommerce Video
+        - Task polling
+        - File upload
+        - Webhooks
+        - Usage
+        - Other
+    validations:
+      required: true

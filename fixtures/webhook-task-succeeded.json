@@ -1,0 +1,19 @@
+{
+  "id": "evt_example_123",
+  "object": "event",
+  "type": "task.succeeded",
+  "created_at": "2026-07-16T08:02:14.000Z",
+  "data": {
+    "id": "task_8K2qA",
+    "workflow": "music-video",
+    "status": "succeeded",
+    "output": {
+      "media": [
+        {
+          "type": "video",
+          "url": "https://media.example.com/outputs/task_8K2qA.mp4"
+        }
+      ]
+    }
+  }
+}

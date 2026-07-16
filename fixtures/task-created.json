@@ -1,0 +1,18 @@
+{
+  "data": {
+    "id": "task_8K2qA",
+    "object": "task",
+    "workflow": "music-video",
+    "status": "queued",
+    "stage": "accepted",
+    "created_at": "2026-07-16T08:00:00.000Z",
+    "updated_at": "2026-07-16T08:00:00.000Z",
+    "completed_at": null,
+    "output": null,
+    "usage": {
+      "credits_charged": 50,
+      "credits_refunded": 0
+    },
+    "request_id": "req_example_created"
+  }
+}
