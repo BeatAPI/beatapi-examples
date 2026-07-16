@@ -239,7 +239,7 @@ components:
           description: BeatAPI customer credits refunded after failed eligible work.
     Task:
       type: object
-      required: [id, object, workflow, status, stage, created_at, updated_at, completed_at, output, usage, request_id]
+      required: [id, object, workflow, status, stage, created_at, updated_at, completed_at, output, usage, request_id, error_code, error_message]
       properties:
         id:
           type: string
@@ -268,15 +268,17 @@ components:
           oneOf:
             - type: 'null'
             - type: object
+              required: [media, r2_url]
               properties:
                 media:
                   type: array
                   items:
                     type: object
+                    required: [type, url, mime_type]
                     properties:
                       type:
                         type: string
-                        example: video
+                        enum: [video]
                       url:
                         type: string
                         format: uri
@@ -335,7 +337,7 @@ components:
           example: 1782210000
     WebhookEndpoint:
       type: object
-      required: [id, object, url, events, status, created_at]
+      required: [id, object, url, description, events, status, secret, created_at, updated_at]
       properties:
         id:
           type: string
@@ -505,6 +507,7 @@ components:
                 - forbidden
                 - not_found
                 - insufficient_credits
+                - idempotency_conflict
                 - user_concurrency_exceeded
                 - rate_limit_exceeded
                 - processing_unavailable
@@ -988,6 +991,7 @@ paths:
                   maximum: 60
                 prompt:
                   type: string
+                  maxLength: 2000
                 aspect_ratio:
                   type: string
                   enum: ['16:9', '9:16', '1:1']

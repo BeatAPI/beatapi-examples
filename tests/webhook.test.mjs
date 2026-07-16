@@ -3,8 +3,9 @@ import { createHmac } from "node:crypto";
 import test from "node:test";
 
 let verifyBeatAPIWebhook;
+let describeBeatAPIWebhookEvent;
 try {
-  ({ verifyBeatAPIWebhook } = await import(
+  ({ describeBeatAPIWebhookEvent, verifyBeatAPIWebhook } = await import(
     "../examples/node/lib/webhook.mjs"
   ));
 } catch {
@@ -12,7 +13,7 @@ try {
 }
 
 const secret = "whsec_test";
-const rawBody = '{"type":"task.succeeded","data":{"id":"task_123"}}';
+const rawBody = '{"event":"task.succeeded","data":{"id":"task_123"}}';
 const timestamp = "1784187600";
 const signature = createHmac("sha256", secret)
   .update(`${timestamp}.${rawBody}`)
@@ -57,5 +58,16 @@ test("rejects a stale webhook timestamp", () => {
       nowSeconds: Number(timestamp) + 301,
     }),
     false,
+  );
+});
+
+test("reads the public event and task fields from a webhook payload", () => {
+  assert.ok(
+    describeBeatAPIWebhookEvent,
+    "webhook event formatter must be implemented",
+  );
+  assert.equal(
+    describeBeatAPIWebhookEvent(JSON.parse(rawBody)),
+    "task.succeeded for task_123",
   );
 });

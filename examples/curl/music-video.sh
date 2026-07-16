@@ -14,5 +14,6 @@ curl --fail-with-body --silent --show-error \
     "prompt": "Neon rooftop performance with cinematic light trails.",
     "language": "en",
     "aspect_ratio": "9:16",
-    "resolution": "720p"
+    "resolution": "720p",
+    "compose_mode": "auto"
   }'

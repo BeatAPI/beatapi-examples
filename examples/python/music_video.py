@@ -15,6 +15,7 @@ def main() -> None:
             "language": "en",
             "aspect_ratio": "9:16",
             "resolution": "720p",
+            "compose_mode": "auto",
         }
     )
     print(f"Created {created['id']}")
@@ -25,6 +26,10 @@ def main() -> None:
             f"{task['id']}: {task['status']}"
         ),
     )
+    if completed["status"] == "failed":
+        raise RuntimeError(
+            completed.get("error_message") or "Music video generation failed."
+        )
     print(json.dumps(completed, indent=2))
 
 
@@ -36,4 +41,7 @@ if __name__ == "__main__":
             f"[{error.status}] {error.code}: {error} "
             f"({error.request_id or 'no request id'})"
         )
+        raise SystemExit(1) from error
+    except RuntimeError as error:
+        print(error)
         raise SystemExit(1) from error

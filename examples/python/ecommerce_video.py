@@ -22,6 +22,10 @@ def main() -> None:
             f"{task['id']}: {task['status']}"
         ),
     )
+    if completed["status"] == "failed":
+        raise RuntimeError(
+            completed.get("error_message") or "Ecommerce video generation failed."
+        )
     print(json.dumps(completed, indent=2))
 
 
@@ -33,4 +37,7 @@ if __name__ == "__main__":
             f"[{error.status}] {error.code}: {error} "
             f"({error.request_id or 'no request id'})"
         )
+        raise SystemExit(1) from error
+    except RuntimeError as error:
+        print(error)
         raise SystemExit(1) from error

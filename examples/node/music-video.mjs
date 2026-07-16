@@ -11,6 +11,7 @@ try {
     language: "en",
     aspect_ratio: "9:16",
     resolution: "720p",
+    compose_mode: "auto",
   });
 
   console.log(`Created ${created.id}`);

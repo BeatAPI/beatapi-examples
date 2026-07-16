@@ -10,13 +10,19 @@
     "check:shell": "bash -n examples/curl/*.sh",
     "check:python": "python3 -m compileall -q examples/python",
     "check:openapi": "redocly lint openapi/beatapi.yaml",
+    "check:openapi-sync": "node scripts/sync-openapi.mjs --check",
+    "smoke:live": "node scripts/smoke-live.mjs",
+    "sync:openapi": "node scripts/sync-openapi.mjs --write",
     "verify": "npm test && npm run test:python && npm run check:shell && npm run check:python && npm run check:openapi"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0 <21 || >=22.12.0"
   },
   "license": "MIT",
   "devDependencies": {
-    "@redocly/cli": "2.39.0"
+    "@redocly/cli": "2.39.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.9.0"
   }
 }

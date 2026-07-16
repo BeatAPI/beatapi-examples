@@ -1,0 +1,308 @@
+{
+  "name": "BeatAPI Music Video - Bounded Polling",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "38516679-8027-4e27-baf0-078ed6df6703",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1376286-2a12-40bd-a671-d247885686bd",
+              "name": "image_url",
+              "value": "https://media.beatapi.io/samples/neon-singer.png",
+              "type": "string"
+            },
+            {
+              "id": "5257dffd-f577-44c6-a5c3-ae52fc25afab",
+              "name": "audio_url",
+              "value": "https://media.beatapi.io/samples/neon-singer-preview.mp3",
+              "type": "string"
+            },
+            {
+              "id": "c5a917a9-d840-44be-a72d-4317d450be5e",
+              "name": "prompt",
+              "value": "Neon rooftop performance with cinematic light trails.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16722612-c9df-40ab-8ef2-fe7db5c35847",
+      "name": "Configure Inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -680,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beatapi.io/v1/music-video/tasks",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  images: [$json.image_url],\n  audio_url: $json.audio_url,\n  prompt: $json.prompt,\n  language: 'en',\n  aspect_ratio: '9:16',\n  resolution: '720p',\n  compose_mode: 'auto'\n} }}",
+        "options": {}
+      },
+      "id": "44a50bcf-f648-47b3-92a2-eb9dcd8b545e",
+      "name": "Create BeatAPI Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const taskId = $input.first().json.data.id;\nreturn Array.from({ length: 120 }, (_, index) => ({\n  json: {\n    task_id: taskId,\n    attempt: index + 1,\n  },\n}));"
+      },
+      "id": "bdd515d0-0e98-40bb-8be8-f72de4e37667",
+      "name": "Create 120 Poll Attempts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "734e231e-c5b1-4d65-96c7-80f30a78fd7f",
+      "name": "Loop Over Attempts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        40,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "85c9ead3-ec33-42dd-a4c0-f4d97f63ff1c",
+      "name": "Wait 10 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        280,
+        260
+      ],
+      "webhookId": "4e76fcfd-4806-4646-8d81-aa5f57c711da"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.beatapi.io/v1/tasks/{{ $json.task_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "de90734b-f275-4bcf-92b8-e2d9be6a3dbb",
+      "name": "Poll BeatAPI Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2c350465-faf0-4ffd-bb60-cae98602100c",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "succeeded",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "f8459529-4277-4e74-9b50-ec1bb981d419",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "failed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "20a91540-645f-482f-b522-97a99c781ac5",
+      "name": "Task Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        760,
+        260
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "3b58f4cf-d356-4b4f-9534-d395ef28c747",
+      "name": "Final Task Response",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "BeatAPI task did not finish after 120 polling attempts."
+      },
+      "id": "9a4206d1-d11f-4507-a22b-854926268f89",
+      "name": "Polling Timeout",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        280,
+        40
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configure Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Inputs": {
+      "main": [
+        [
+          {
+            "node": "Create BeatAPI Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create BeatAPI Task": {
+      "main": [
+        [
+          {
+            "node": "Create 120 Poll Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create 120 Poll Attempts": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Attempts": {
+      "main": [
+        [
+          {
+            "node": "Polling Timeout",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Poll BeatAPI Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll BeatAPI Task": {
+      "main": [
+        [
+          {
+            "node": "Task Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Finished?": {
+      "main": [
+        [
+          {
+            "node": "Final Task Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 1800
+  },
+  "versionId": "26fb7917-816d-46dc-9ee5-fdef4e4c78ad",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

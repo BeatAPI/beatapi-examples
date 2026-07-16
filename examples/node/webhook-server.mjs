@@ -1,7 +1,11 @@
 import { createServer } from "node:http";
-import { verifyBeatAPIWebhook } from "./lib/webhook.mjs";
+import {
+  describeBeatAPIWebhookEvent,
+  verifyBeatAPIWebhook,
+} from "./lib/webhook.mjs";
 
 const secret = process.env.BEATAPI_WEBHOOK_SECRET;
+const maxBodyBytes = 1024 * 1024;
 if (!secret) {
   throw new Error("BEATAPI_WEBHOOK_SECRET is required.");
 }
@@ -13,8 +17,21 @@ const server = createServer((request, response) => {
   }
 
   const chunks = [];
-  request.on("data", (chunk) => chunks.push(chunk));
+  let bodyBytes = 0;
+  let bodyTooLarge = false;
+  request.on("data", (chunk) => {
+    if (bodyTooLarge) return;
+    bodyBytes += chunk.length;
+    if (bodyBytes > maxBodyBytes) {
+      bodyTooLarge = true;
+      response.writeHead(413).end("Payload too large");
+      request.destroy();
+      return;
+    }
+    chunks.push(chunk);
+  });
   request.on("end", () => {
+    if (bodyTooLarge) return;
     const rawBody = Buffer.concat(chunks).toString("utf8");
     const valid = verifyBeatAPIWebhook({
       rawBody,
@@ -30,9 +47,7 @@ const server = createServer((request, response) => {
 
     try {
       const event = JSON.parse(rawBody);
-      console.log(
-        `Received ${event.type} for ${event.data?.id || "unknown task"}`,
-      );
+      console.log(`Received ${describeBeatAPIWebhookEvent(event)}`);
       response.writeHead(204).end();
     } catch {
       response.writeHead(400).end("Invalid JSON");

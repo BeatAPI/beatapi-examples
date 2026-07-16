@@ -10,6 +10,11 @@ Trigger
   -> If succeeded/failed, finish; otherwise loop to Wait
 ```
 
+For a ready-to-import bounded polling workflow, download
+[`beatapi-music-video.json`](./beatapi-music-video.json) and import it into n8n.
+It checks at most 120 times at ten-second intervals and fails explicitly when
+the polling window is exhausted.
+
 Create an n8n Header Auth credential:
 
 ```text
@@ -19,6 +24,10 @@ Value: Bearer <your BeatAPI API key>
 
 Keep the credential in n8n's credential store. Do not paste a real key into an
 exported workflow JSON.
+
+After importing the workflow, assign that Header Auth credential to both
+`Create BeatAPI Task` and `Poll BeatAPI Task`. Then edit `Configure Inputs` to
+use your own public image and audio URLs.
 
 For task creation, set the HTTP Request node to:
 

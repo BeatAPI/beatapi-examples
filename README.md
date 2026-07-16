@@ -2,6 +2,8 @@
 
 Official runnable examples for the BeatAPI async AI video API.
 
+[![Verify examples](https://github.com/erickkkyt/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/erickkkyt/beatapi-examples/actions/workflows/verify.yml)
+
 [Website](https://beatapi.io/) ·
 [API documentation](https://docs.beatapi.io/) ·
 [Music Video Playground](https://beatapi.io/music-video-api) ·
@@ -15,6 +17,17 @@ The primary launch route is `POST /v1/music-video/tasks`.
 
 ```text
 Create task -> queued/processing -> succeeded/failed -> hosted output
+```
+
+```mermaid
+flowchart LR
+  A["Create task"] --> B["queued / processing"]
+  B --> C{"Final state?"}
+  C -->|No| D["Wait 5-10 seconds"]
+  D --> E["GET /v1/tasks/{task_id}"]
+  E --> C
+  C -->|succeeded| F["Read output.media"]
+  C -->|failed| G["Inspect error_code and usage"]
 ```
 
 > This repository contains examples and a small reference client. It is not a
@@ -41,7 +54,8 @@ curl https://api.beatapi.io/v1/music-video/tasks \
     "prompt": "Neon rooftop performance with cinematic light trails.",
     "language": "en",
     "aspect_ratio": "9:16",
-    "resolution": "720p"
+    "resolution": "720p",
+    "compose_mode": "auto"
   }'
 ```
 
@@ -78,7 +92,8 @@ are available in `data.output.media`.
 
 ### Node.js
 
-Requires Node.js 20 or newer. No install step is required.
+The dependency-free examples require Node.js 20 or newer. Repository
+verification requires Node.js 20.19+ or 22.12+.
 
 ```bash
 node examples/node/music-video.mjs
@@ -157,6 +172,7 @@ credit, or concurrency errors.
 Webhook requests include:
 
 ```text
+X-BeatAPI-Event
 X-BeatAPI-Signature
 X-BeatAPI-Timestamp
 ```
@@ -165,6 +181,20 @@ Verify the signature against the exact raw request body before parsing JSON,
 and reject timestamps older than five minutes. The Node.js receiver example
 implements HMAC-SHA256 verification with a constant-time comparison.
 
+The signed JSON body uses `event`, not `type`:
+
+```json
+{
+  "id": "evt_example_123",
+  "event": "task.succeeded",
+  "created_at": 1784188934,
+  "data": {
+    "id": "task_8K2qA",
+    "status": "succeeded"
+  }
+}
+```
+
 ```bash
 export BEATAPI_WEBHOOK_SECRET="whsec_your_secret"
 node examples/node/webhook-server.mjs
@@ -172,7 +202,7 @@ node examples/node/webhook-server.mjs
 
 ## Integration guides
 
-- [n8n](integrations/n8n/README.md)
+- [n8n guide and importable bounded-polling workflow](integrations/n8n/README.md)
 - [Postman](integrations/postman/README.md)
 - [Sanitized response fixtures](fixtures/)
 - [Production API reference](https://docs.beatapi.io/)
@@ -201,6 +231,24 @@ npm test
 npm run test:python
 npm run verify
 ```
+
+The public OpenAPI file is synchronized byte-for-byte from the private service
+repository:
+
+```bash
+npm run sync:openapi
+npm run check:openapi-sync
+```
+
+Run a read-only production smoke test with:
+
+```bash
+npm run smoke:live
+```
+
+Without `BEATAPI_API_KEY`, it checks anonymous workflow discovery. When the
+environment variable is present, it additionally verifies authenticated
+`GET /v1/usage`. The smoke test never creates tasks or consumes credits.
 
 ## License
 
