@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+let resolveDefaultServiceRepository;
 let syncOpenApi;
 try {
-  ({ syncOpenApi } = await import("../scripts/sync-openapi.mjs"));
+  ({ resolveDefaultServiceRepository, syncOpenApi } = await import(
+    "../scripts/sync-openapi.mjs"
+  ));
 } catch {
   // The first TDD run proves the sync interface does not exist yet.
 }
@@ -37,4 +40,28 @@ test("copies the canonical OpenAPI contract without changing its bytes", async (
 
   assert.equal(result.inSync, true);
   assert.equal(await readFile(destination, "utf8"), canonical);
+});
+
+test("resolves the private service repository beside the toolkit folder", async () => {
+  assert.ok(
+    resolveDefaultServiceRepository,
+    "resolveDefaultServiceRepository must be implemented",
+  );
+  const desktop = await mkdtemp(join(tmpdir(), "beatapi-desktop-"));
+  const repositoryRoot = join(
+    desktop,
+    "BeatAPI-Developer-Toolkit",
+    "beatapi-examples",
+  );
+  const serviceRepository = join(desktop, "API项目");
+  await mkdir(join(serviceRepository, "docs"), { recursive: true });
+  await writeFile(
+    join(serviceRepository, "docs", "openapi.yaml"),
+    "openapi: 3.1.0\n",
+  );
+
+  assert.equal(
+    resolveDefaultServiceRepository(repositoryRoot),
+    serviceRepository,
+  );
 });

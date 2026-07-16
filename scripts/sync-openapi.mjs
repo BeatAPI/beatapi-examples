@@ -1,8 +1,21 @@
+import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+export function resolveDefaultServiceRepository(root = repositoryRoot) {
+  const candidates = [
+    resolve(root, "..", "API项目"),
+    resolve(root, "..", "..", "API项目"),
+  ];
+  return (
+    candidates.find((candidate) =>
+      existsSync(resolve(candidate, "docs", "openapi.yaml")),
+    ) ?? candidates[0]
+  );
+}
 
 export async function syncOpenApi({ source, destination, mode }) {
   if (mode !== "check" && mode !== "write") {
@@ -25,7 +38,7 @@ async function main() {
   const mode = process.argv.includes("--check") ? "check" : "write";
   const serviceRepository =
     process.env.BEATAPI_SERVICE_REPO ||
-    resolve(repositoryRoot, "..", "API项目");
+    resolveDefaultServiceRepository();
   const source = resolve(serviceRepository, "docs", "openapi.yaml");
   const destination = resolve(repositoryRoot, "openapi", "beatapi.yaml");
   const result = await syncOpenApi({ source, destination, mode });
