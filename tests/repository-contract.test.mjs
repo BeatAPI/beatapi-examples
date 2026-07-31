@@ -10,8 +10,12 @@ const requiredFiles = [
   "SECURITY.md",
   "openapi/beatapi.yaml",
   "examples/curl/music-video.sh",
+  "examples/curl/realtime-session.sh",
   "examples/node/music-video.mjs",
+  "examples/node/realtime-session.mjs",
   "examples/python/music_video.py",
+  "examples/python/realtime_session.py",
+  "examples/browser/realtime-video.ts",
   "examples/node/webhook-server.mjs",
   "fixtures/task-succeeded.json",
   "integrations/n8n/beatapi-music-video.json",
@@ -40,6 +44,7 @@ test("documents the public API without internal implementation names", async () 
 
   assert.match(readme, /https:\/\/api\.beatapi\.io/);
   assert.match(readme, /POST \/v1\/music-video\/tasks/);
+  assert.match(readme, /`POST` \| `\/v1\/realtime\/sessions`/);
   assert.doesNotMatch(readme, /ShipAny|Hyperdrive|Supabase|Upstash|Vidu/i);
 });
 

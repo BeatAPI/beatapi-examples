@@ -45,6 +45,65 @@ test("creates a music video task with bearer authentication", async () => {
   assert.equal(captured.init.method, "POST");
 });
 
+test("creates a realtime session with an idempotency key", async () => {
+  assert.ok(BeatAPIClient, "BeatAPIClient must be implemented");
+  let captured;
+  const client = new BeatAPIClient({
+    apiKey: "sk_test",
+    fetchImpl: async (url, init) => {
+      captured = { url, init };
+      return jsonResponse(201, {
+        data: {
+          id: "rts_test",
+          object: "realtime.session",
+          status: "ready",
+          client_secret: "brt_live_test",
+        },
+      });
+    },
+  });
+
+  const session = await client.createRealtimeSession(
+    {
+      max_duration_seconds: 60,
+      allowed_origins: ["https://app.example.com"],
+    },
+    { idempotencyKey: "customer-call-123" },
+  );
+
+  assert.equal(session.id, "rts_test");
+  assert.equal(captured.url, "https://api.beatapi.io/v1/realtime/sessions");
+  assert.equal(captured.init.method, "POST");
+  assert.equal(
+    captured.init.headers["idempotency-key"],
+    "customer-call-123",
+  );
+});
+
+test("gets and closes a realtime session by encoded id", async () => {
+  const requests = [];
+  const client = new BeatAPIClient({
+    apiKey: "sk_test",
+    fetchImpl: async (url, init) => {
+      requests.push({
+        path: new URL(url).pathname,
+        method: init.method,
+      });
+      return jsonResponse(200, {
+        data: { id: "rts_test", object: "realtime.session", status: "closed" },
+      });
+    },
+  });
+
+  await client.getRealtimeSession("rts_test/value");
+  await client.closeRealtimeSession("rts_test/value");
+
+  assert.deepEqual(requests, [
+    { path: "/v1/realtime/sessions/rts_test%2Fvalue", method: "GET" },
+    { path: "/v1/realtime/sessions/rts_test%2Fvalue", method: "DELETE" },
+  ]);
+});
+
 test("preserves structured API error details", async () => {
   assert.ok(BeatAPIClient, "BeatAPIClient must be implemented");
   const client = new BeatAPIClient({

@@ -64,19 +64,21 @@ class BeatAPIClient:
         *,
         method: str = "GET",
         body: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Any:
         data = json.dumps(body).encode() if body is not None else None
-        headers = {
+        request_headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            **(headers or {}),
         }
         if data is not None:
-            headers["Content-Type"] = "application/json"
+            request_headers["Content-Type"] = "application/json"
 
         request = urllib.request.Request(
             f"{self.base_url}{path}",
             data=data,
-            headers=headers,
+            headers=request_headers,
             method=method,
         )
 
@@ -117,6 +119,32 @@ class BeatAPIClient:
             "/v1/ecommerce-video/tasks",
             method="POST",
             body=input_data,
+        )
+
+    def create_realtime_session(
+        self,
+        input_data: dict[str, Any],
+        *,
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        if not idempotency_key:
+            raise ValueError("idempotency_key is required")
+        return self.request(
+            "/v1/realtime/sessions",
+            method="POST",
+            body=input_data,
+            headers={"Idempotency-Key": idempotency_key},
+        )
+
+    def get_realtime_session(self, session_id: str) -> dict[str, Any]:
+        encoded = urllib.parse.quote(session_id, safe="")
+        return self.request(f"/v1/realtime/sessions/{encoded}")
+
+    def close_realtime_session(self, session_id: str) -> dict[str, Any]:
+        encoded = urllib.parse.quote(session_id, safe="")
+        return self.request(
+            f"/v1/realtime/sessions/{encoded}",
+            method="DELETE",
         )
 
     def get_task(self, task_id: str) -> dict[str, Any]:

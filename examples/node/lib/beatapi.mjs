@@ -86,6 +86,30 @@ export class BeatAPIClient {
     });
   }
 
+  createRealtimeSession(input, { idempotencyKey } = {}) {
+    if (!idempotencyKey) {
+      throw new TypeError("idempotencyKey is required.");
+    }
+    return this.request("/v1/realtime/sessions", {
+      method: "POST",
+      body: input,
+      headers: { "idempotency-key": idempotencyKey },
+    });
+  }
+
+  getRealtimeSession(sessionId) {
+    return this.request(
+      `/v1/realtime/sessions/${encodeURIComponent(sessionId)}`,
+    );
+  }
+
+  closeRealtimeSession(sessionId) {
+    return this.request(
+      `/v1/realtime/sessions/${encodeURIComponent(sessionId)}`,
+      { method: "DELETE" },
+    );
+  }
+
   getTask(taskId) {
     return this.request(`/v1/tasks/${encodeURIComponent(taskId)}`);
   }

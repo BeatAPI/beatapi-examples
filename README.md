@@ -1,17 +1,19 @@
 # BeatAPI
 
-Official runnable examples for the BeatAPI async AI video API.
+Official runnable examples for BeatAPI async workflows and Realtime Video sessions.
 
 [![Verify examples](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml)
 
 [Website](https://beatapi.io/) ·
 [API documentation](https://docs.beatapi.io/) ·
+[Realtime Video documentation](https://docs.beatapi.io/realtime-video) ·
 [Music Video Playground](https://beatapi.io/music-video-api) ·
 [Ecommerce Video Playground](https://beatapi.io/ecommerce-video-api)
 
-BeatAPI gives product teams one workflow API for creating AI music videos and
-ecommerce video ads. Submit media and creative direction, receive a task ID,
-then poll or use a webhook until the hosted MP4 is ready.
+BeatAPI gives product teams one server-side API key for two integration shapes:
+async Music Video and Ecommerce Video workflows that return hosted output, and
+short-lived Realtime Video sessions that connect browser media through
+`@beatapi/realtime`.
 
 The primary launch route is `POST /v1/music-video/tasks`.
 
@@ -80,6 +82,30 @@ curl https://api.beatapi.io/v1/tasks/task_8K2qA \
 Stop polling when the task is `succeeded` or `failed`. Successful output URLs
 are available in `data.output.media`.
 
+### Realtime session quickstart
+
+Create Realtime sessions only from trusted server code. The browser must never
+receive the permanent `sk_...` API key. It receives only the returned,
+short-lived `client_secret`:
+
+```bash
+curl https://api.beatapi.io/v1/realtime/sessions \
+  -X POST \
+  -H "Authorization: Bearer $BEATAPI_API_KEY" \
+  -H "Idempotency-Key: customer-call-123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "max_duration_seconds": 60,
+    "allowed_origins": ["https://app.example.com"]
+  }'
+```
+
+Use `GET /v1/realtime/sessions/{session_id}` to inspect the session and
+`DELETE` on the same path to close it idempotently. Camera capture and WebRTC
+belong in the browser SDK; the server examples manage only session lifecycle.
+Realtime production access and package availability remain limited until the
+published launch checks are complete.
+
 ## Examples
 
 | Example | cURL | Node.js | Python |
@@ -89,6 +115,10 @@ are available in `data.output.media`.
 | Poll a task | [`poll-task.sh`](examples/curl/poll-task.sh) | reference client | reference client |
 | Upload a file | [`upload-file.sh`](examples/curl/upload-file.sh) | [`upload-file.mjs`](examples/node/upload-file.mjs) | [`upload_file.py`](examples/python/upload_file.py) |
 | Receive webhooks | — | [`webhook-server.mjs`](examples/node/webhook-server.mjs) | — |
+| Realtime session lifecycle | [`realtime-session.sh`](examples/curl/realtime-session.sh) | [`realtime-session.mjs`](examples/node/realtime-session.mjs) | [`realtime_session.py`](examples/python/realtime_session.py) |
+
+The browser-side SDK handoff is shown in
+[`examples/browser/realtime-video.ts`](examples/browser/realtime-video.ts).
 
 ### Node.js
 
@@ -98,6 +128,7 @@ verification requires Node.js 20.19+ or 22.12+.
 ```bash
 node examples/node/music-video.mjs
 node examples/node/ecommerce-video.mjs
+node examples/node/realtime-session.mjs
 ```
 
 The dependency-free reference client is at
@@ -112,6 +143,7 @@ Requires Python 3.11 or newer and uses only the standard library.
 ```bash
 python3 examples/python/music_video.py
 python3 examples/python/ecommerce_video.py
+python3 examples/python/realtime_session.py
 ```
 
 The matching reference client is at
@@ -126,6 +158,8 @@ The matching reference client is at
 | `POST` | `/v1/ecommerce-video/tasks` | Create an Ecommerce Video task |
 | `GET` | `/v1/tasks/{task_id}` | Poll task status and output |
 | `GET` | `/v1/usage` | Read usage, credits, and concurrency |
+| `POST` | `/v1/realtime/sessions` | Create a short-lived Realtime Video session |
+| `GET/DELETE` | `/v1/realtime/sessions/{session_id}` | Inspect or close a Realtime Video session |
 | `POST` | `/v1/files` | Upload local workflow inputs |
 | `GET/POST` | `/v1/webhooks` | List or create webhook endpoints |
 | `GET/PATCH/DELETE` | `/v1/webhooks/{id}` | Manage a webhook endpoint |
@@ -213,6 +247,9 @@ node examples/node/webhook-server.mjs
 - Never commit `.env` files or paste keys into browser code.
 - Never include credentials in screenshots, exported workflow JSON, or issues.
 - Rotate a key immediately if it is exposed.
+- For Realtime, create sessions on the server and give the browser only the
+  returned short-lived `client_secret`.
+- Use exact HTTPS `allowed_origins`; wildcards are rejected.
 
 ## Repository scope
 
