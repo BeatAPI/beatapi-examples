@@ -1,0 +1,20 @@
+{
+  "data": {
+    "id": "rts_01JEXAMPLE",
+    "object": "realtime.session",
+    "status": "ready",
+    "client_secret": "brt_live_example",
+    "expires_at": "2026-07-31T15:30:00.000Z",
+    "max_duration_seconds": 60,
+    "allowed_origins": ["https://app.example.com"],
+    "credits": {
+      "reserved": 60,
+      "settled": 0,
+      "refunded": 0
+    },
+    "request_id": "req_realtime_example",
+    "created_at": "2026-07-31T15:29:00.000Z",
+    "connected_at": null,
+    "closed_at": null
+  }
+}

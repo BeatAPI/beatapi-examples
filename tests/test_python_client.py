@@ -59,6 +59,75 @@ class BeatAPIClientTests(unittest.TestCase):
             "Bearer sk_test",
         )
 
+    def test_creates_realtime_session_with_idempotency_key(self):
+        captured = {}
+
+        def transport(request):
+            captured["request"] = request
+            return Response(
+                201,
+                {
+                    "data": {
+                        "id": "rts_test",
+                        "object": "realtime.session",
+                        "status": "ready",
+                    }
+                },
+            )
+
+        client = BeatAPIClient(api_key="sk_test", transport=transport)
+        session = client.create_realtime_session(
+            {
+                "max_duration_seconds": 60,
+                "allowed_origins": ["https://app.example.com"],
+            },
+            idempotency_key="customer-call-123",
+        )
+
+        self.assertEqual(session["id"], "rts_test")
+        self.assertEqual(
+            captured["request"].full_url,
+            "https://api.beatapi.io/v1/realtime/sessions",
+        )
+        self.assertEqual(
+            captured["request"].get_header("Idempotency-key"),
+            "customer-call-123",
+        )
+
+    def test_gets_and_closes_realtime_session(self):
+        captured = []
+
+        def transport(request):
+            captured.append((request.full_url, request.method))
+            return Response(
+                200,
+                {
+                    "data": {
+                        "id": "rts_test",
+                        "object": "realtime.session",
+                        "status": "closed",
+                    }
+                },
+            )
+
+        client = BeatAPIClient(api_key="sk_test", transport=transport)
+        client.get_realtime_session("rts_test/value")
+        client.close_realtime_session("rts_test/value")
+
+        self.assertEqual(
+            captured,
+            [
+                (
+                    "https://api.beatapi.io/v1/realtime/sessions/rts_test%2Fvalue",
+                    "GET",
+                ),
+                (
+                    "https://api.beatapi.io/v1/realtime/sessions/rts_test%2Fvalue",
+                    "DELETE",
+                ),
+            ],
+        )
+
     def test_polls_until_terminal_status(self):
         self.assertIsNotNone(BeatAPIClient, "BeatAPIClient must be implemented")
         statuses = iter(["queued", "processing", "succeeded"])

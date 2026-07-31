@@ -2,7 +2,7 @@
   "name": "beatapi-examples",
   "version": "0.1.0",
   "private": true,
-  "description": "Official examples for the BeatAPI async AI video API.",
+  "description": "Official examples for BeatAPI async workflows and Realtime Video sessions.",
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",

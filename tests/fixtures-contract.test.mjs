@@ -31,6 +31,7 @@ const fixtureContracts = [
   ["fixtures/task-failed.json", "TaskResponse"],
   ["fixtures/webhook-task-succeeded.json", "WebhookEvent"],
   ["fixtures/api-error.json", "Error"],
+  ["fixtures/realtime-session-created.json", "RealtimeSessionResponse"],
 ];
 
 for (const [fixturePath, schemaName] of fixtureContracts) {
