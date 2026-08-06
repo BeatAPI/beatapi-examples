@@ -20,7 +20,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@redocly/cli": "2.39.0",
+    "@redocly/cli": "2.43.3",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "yaml": "2.9.0"
