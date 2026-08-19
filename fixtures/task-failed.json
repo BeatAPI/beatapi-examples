@@ -2,6 +2,9 @@
   "data": {
     "id": "task_8K2qA",
     "object": "task",
+    "task_kind": "workflow",
+    "capability_id": "music-video",
+    "capability_version": 1,
     "workflow": "music-video",
     "status": "failed",
     "stage": "failed",
@@ -15,10 +18,10 @@
     "completed_at": 1784188881,
     "output": null,
     "usage": {
-      "credits_reserved": 50,
+      "credits_reserved": 1.5,
       "credits_settled": 0,
-      "credits_charged": 50,
-      "credits_refunded": 50
+      "credits_charged": 1.5,
+      "credits_refunded": 1.5
     },
     "request_id": "req_example_failed"
   }

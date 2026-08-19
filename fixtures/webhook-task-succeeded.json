@@ -5,6 +5,9 @@
   "data": {
     "id": "task_8K2qA",
     "object": "task",
+    "task_kind": "workflow",
+    "capability_id": "music-video",
+    "capability_version": 1,
     "workflow": "music-video",
     "status": "succeeded",
     "stage": "succeeded",
@@ -40,10 +43,10 @@
       "r2_url": "https://media.example.com/outputs/task_8K2qA.mp4"
     },
     "usage": {
-      "credits_reserved": 50,
-      "credits_settled": 50,
+      "credits_reserved": 1.5,
+      "credits_settled": 1.5,
       "credits_refunded": 0,
-      "credits_charged": 50
+      "credits_charged": 1.5
     },
     "request_id": "req_example_succeeded",
     "error_code": null,

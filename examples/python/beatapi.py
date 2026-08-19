@@ -121,6 +121,53 @@ class BeatAPIClient:
             body=input_data,
         )
 
+    def list_generation_models(self) -> list[dict[str, Any]]:
+        result = self.request("/v1/media/models")
+        return result["data"]
+
+    def create_image_task(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        return self.request("/v1/images/tasks", method="POST", body=input_data)
+
+    def create_video_task(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        return self.request("/v1/videos/tasks", method="POST", body=input_data)
+
+    def list_effects(
+        self,
+        *,
+        output_type: str | None = None,
+        category: str | None = None,
+    ) -> list[dict[str, Any]]:
+        query = urllib.parse.urlencode(
+            {
+                key: value
+                for key, value in {
+                    "output_type": output_type,
+                    "category": category,
+                }.items()
+                if value
+            }
+        )
+        result = self.request(f"/v1/effects{'?' + query if query else ''}")
+        return result["data"]
+
+    def get_effect(self, effect_id: str) -> dict[str, Any]:
+        return self.request(f"/v1/effects/{urllib.parse.quote(effect_id, safe='')}")
+
+    def create_effect_task(
+        self,
+        input_data: dict[str, Any],
+        *,
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        if not idempotency_key:
+            raise ValueError("idempotency_key is required")
+        return self.request(
+            "/v1/effects/tasks",
+            method="POST",
+            body=input_data,
+            headers={"Idempotency-Key": idempotency_key},
+        )
+
     def create_realtime_session(
         self,
         input_data: dict[str, Any],

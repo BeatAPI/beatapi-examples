@@ -11,10 +11,19 @@ const requiredFiles = [
   "openapi/beatapi.yaml",
   "examples/curl/music-video.sh",
   "examples/curl/realtime-session.sh",
+  "examples/curl/image-generation.sh",
+  "examples/curl/video-generation.sh",
+  "examples/curl/effect-task.sh",
   "examples/node/music-video.mjs",
   "examples/node/realtime-session.mjs",
+  "examples/node/image-generation.mjs",
+  "examples/node/video-generation.mjs",
+  "examples/node/effect-task.mjs",
   "examples/python/music_video.py",
   "examples/python/realtime_session.py",
+  "examples/python/image_generation.py",
+  "examples/python/video_generation.py",
+  "examples/python/effect_task.py",
   "examples/browser/realtime-video.ts",
   "examples/node/webhook-server.mjs",
   "fixtures/task-succeeded.json",
@@ -44,6 +53,9 @@ test("documents the public API without internal implementation names", async () 
 
   assert.match(readme, /https:\/\/api\.beatapi\.io/);
   assert.match(readme, /POST \/v1\/music-video\/tasks/);
+  assert.match(readme, /POST \/v1\/images\/tasks/);
+  assert.match(readme, /POST \/v1\/videos\/tasks/);
+  assert.match(readme, /POST \/v1\/effects\/tasks/);
   assert.match(readme, /`POST` \| `\/v1\/realtime\/sessions`/);
   assert.doesNotMatch(readme, /ShipAny|Hyperdrive|Supabase|Upstash|Vidu/i);
 });
