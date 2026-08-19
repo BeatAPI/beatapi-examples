@@ -59,6 +59,47 @@ class BeatAPIClientTests(unittest.TestCase):
             "Bearer sk_test",
         )
 
+    def test_covers_generation_model_and_effect_routes(self):
+        captured = []
+
+        def transport(request):
+            captured.append((request.full_url, request.method, request.data, request.headers))
+            if request.full_url.endswith("/v1/media/models"):
+                return Response(200, {"data": {"object": "list", "data": [{"id": "nano-banana"}]}})
+            if "/v1/effects?" in request.full_url:
+                return Response(200, {"data": {"object": "list", "data": [{"id": "video-muscle-max"}]}})
+            return Response(201, {"data": {"id": "task_test"}})
+
+        client = BeatAPIClient(api_key="sk_test", transport=transport)
+        self.assertEqual(client.list_generation_models(), [{"id": "nano-banana"}])
+        client.create_image_task({"model": "nano-banana", "prompt": "Editorial still"})
+        client.create_video_task({"model": "seedance-2-mini", "prompt": "Slow orbit"})
+        self.assertEqual(
+            client.list_effects(output_type="video"),
+            [{"id": "video-muscle-max"}],
+        )
+        client.get_effect("video/muscle")
+        client.create_effect_task(
+            {
+                "effect_id": "video-muscle-max",
+                "images": ["https://media.example.com/portrait.png"],
+            },
+            idempotency_key="effect-request-123",
+        )
+
+        self.assertEqual(
+            [(url, method) for url, method, _data, _headers in captured],
+            [
+                ("https://api.beatapi.io/v1/media/models", "GET"),
+                ("https://api.beatapi.io/v1/images/tasks", "POST"),
+                ("https://api.beatapi.io/v1/videos/tasks", "POST"),
+                ("https://api.beatapi.io/v1/effects?output_type=video", "GET"),
+                ("https://api.beatapi.io/v1/effects/video%2Fmuscle", "GET"),
+                ("https://api.beatapi.io/v1/effects/tasks", "POST"),
+            ],
+        )
+        self.assertEqual(captured[-1][3]["Idempotency-key"], "effect-request-123")
+
     def test_creates_realtime_session_with_idempotency_key(self):
         captured = {}
 

@@ -45,6 +45,84 @@ test("creates a music video task with bearer authentication", async () => {
   assert.equal(captured.init.method, "POST");
 });
 
+test("covers generation model discovery, image, video, and Effect routes", async () => {
+  const requests = [];
+  const client = new BeatAPIClient({
+    apiKey: "sk_test",
+    fetchImpl: async (url, init) => {
+      requests.push({
+        method: init.method,
+        path: new URL(url).pathname + new URL(url).search,
+        body: init.body ? JSON.parse(init.body) : undefined,
+        idempotencyKey: init.headers["idempotency-key"],
+      });
+      if (new URL(url).pathname === "/v1/media/models") {
+        return jsonResponse(200, {
+          data: { object: "list", data: [{ id: "nano-banana" }] },
+        });
+      }
+      if (new URL(url).pathname === "/v1/effects") {
+        return jsonResponse(200, {
+          data: { object: "list", data: [{ id: "video-muscle-max" }] },
+        });
+      }
+      return jsonResponse(201, { data: { id: "task_test" } });
+    },
+  });
+
+  assert.deepEqual(await client.listGenerationModels(), [{ id: "nano-banana" }]);
+  await client.createImageTask({ model: "nano-banana", prompt: "Editorial still" });
+  await client.createVideoTask({ model: "seedance-2-mini", prompt: "Slow orbit" });
+  assert.deepEqual(await client.listEffects({ outputType: "video" }), [
+    { id: "video-muscle-max" },
+  ]);
+  await client.getEffect("video/muscle");
+  await client.createEffectTask(
+    {
+      effect_id: "video-muscle-max",
+      images: ["https://media.example.com/portrait.png"],
+    },
+    { idempotencyKey: "effect-request-123" },
+  );
+
+  assert.deepEqual(requests, [
+    { method: "GET", path: "/v1/media/models", body: undefined, idempotencyKey: undefined },
+    {
+      method: "POST",
+      path: "/v1/images/tasks",
+      body: { model: "nano-banana", prompt: "Editorial still" },
+      idempotencyKey: undefined,
+    },
+    {
+      method: "POST",
+      path: "/v1/videos/tasks",
+      body: { model: "seedance-2-mini", prompt: "Slow orbit" },
+      idempotencyKey: undefined,
+    },
+    {
+      method: "GET",
+      path: "/v1/effects?output_type=video",
+      body: undefined,
+      idempotencyKey: undefined,
+    },
+    {
+      method: "GET",
+      path: "/v1/effects/video%2Fmuscle",
+      body: undefined,
+      idempotencyKey: undefined,
+    },
+    {
+      method: "POST",
+      path: "/v1/effects/tasks",
+      body: {
+        effect_id: "video-muscle-max",
+        images: ["https://media.example.com/portrait.png"],
+      },
+      idempotencyKey: "effect-request-123",
+    },
+  ]);
+});
+
 test("creates a realtime session with an idempotency key", async () => {
   assert.ok(BeatAPIClient, "BeatAPIClient must be implemented");
   let captured;

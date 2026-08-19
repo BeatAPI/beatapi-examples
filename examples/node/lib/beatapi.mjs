@@ -86,6 +86,49 @@ export class BeatAPIClient {
     });
   }
 
+  async listGenerationModels() {
+    const result = await this.request("/v1/media/models");
+    return result.data;
+  }
+
+  createImageTask(input) {
+    return this.request("/v1/images/tasks", {
+      method: "POST",
+      body: input,
+    });
+  }
+
+  createVideoTask(input) {
+    return this.request("/v1/videos/tasks", {
+      method: "POST",
+      body: input,
+    });
+  }
+
+  async listEffects({ outputType, category } = {}) {
+    const query = new URLSearchParams();
+    if (outputType) query.set("output_type", outputType);
+    if (category) query.set("category", category);
+    const suffix = query.size ? `?${query}` : "";
+    const result = await this.request(`/v1/effects${suffix}`);
+    return result.data;
+  }
+
+  getEffect(effectId) {
+    return this.request(`/v1/effects/${encodeURIComponent(effectId)}`);
+  }
+
+  createEffectTask(input, { idempotencyKey } = {}) {
+    if (!idempotencyKey) {
+      throw new TypeError("idempotencyKey is required.");
+    }
+    return this.request("/v1/effects/tasks", {
+      method: "POST",
+      body: input,
+      headers: { "idempotency-key": idempotencyKey },
+    });
+  }
+
   createRealtimeSession(input, { idempotencyKey } = {}) {
     if (!idempotencyKey) {
       throw new TypeError("idempotencyKey is required.");

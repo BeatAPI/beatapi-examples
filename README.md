@@ -1,6 +1,7 @@
 # BeatAPI
 
-Official runnable examples for BeatAPI async workflows and Realtime Video sessions.
+Official runnable examples for BeatAPI image, video, Effect, workflow, and
+Realtime APIs.
 
 [![Verify examples](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml)
 
@@ -10,12 +11,12 @@ Official runnable examples for BeatAPI async workflows and Realtime Video sessio
 [Music Video Playground](https://beatapi.io/music-video-api) ·
 [Ecommerce Video Playground](https://beatapi.io/ecommerce-video-api)
 
-BeatAPI gives product teams one server-side API key for two integration shapes:
-async Music Video and Ecommerce Video workflows that return hosted output, and
-short-lived Realtime Video sessions that connect browser media through
-`@beatapi/realtime`.
+BeatAPI gives product teams one server-side API key for model-specific image and
+video generation, versioned Effects, async Music Video and Ecommerce Video
+workflows, and short-lived Realtime Video sessions.
 
-The primary launch route is `POST /v1/music-video/tasks`.
+Workflow creation uses POST /v1/music-video/tasks; model generation uses POST
+/v1/images/tasks or POST /v1/videos/tasks; Effects use POST /v1/effects/tasks.
 
 ```text
 Create task -> queued/processing -> succeeded/failed -> hosted output
@@ -41,7 +42,24 @@ Create an API key in the
 [BeatAPI dashboard](https://beatapi.io/dashboard/apikeys), then export it:
 
 ```bash
-export BEATAPI_API_KEY="sk_your_key"
+read -rsp "BeatAPI API key: " BEATAPI_API_KEY && echo
+export BEATAPI_API_KEY
+```
+
+Discover the current image and video model aliases without authentication:
+
+```bash
+curl https://api.beatapi.io/v1/media/models
+```
+
+Create an image task with `POST /v1/images/tasks`:
+
+```bash
+curl https://api.beatapi.io/v1/images/tasks \
+  -X POST \
+  -H "Authorization: Bearer $BEATAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"nano-banana","prompt":"Editorial product photograph on warm stone."}'
 ```
 
 Create a Music Video task:
@@ -112,6 +130,9 @@ published launch checks are complete.
 | --- | --- | --- | --- |
 | Music Video task | [`music-video.sh`](examples/curl/music-video.sh) | [`music-video.mjs`](examples/node/music-video.mjs) | [`music_video.py`](examples/python/music_video.py) |
 | Ecommerce Video task | [`ecommerce-video.sh`](examples/curl/ecommerce-video.sh) | [`ecommerce-video.mjs`](examples/node/ecommerce-video.mjs) | [`ecommerce_video.py`](examples/python/ecommerce_video.py) |
+| Image generation | [`image-generation.sh`](examples/curl/image-generation.sh) | [`image-generation.mjs`](examples/node/image-generation.mjs) | [`image_generation.py`](examples/python/image_generation.py) |
+| Video generation | [`video-generation.sh`](examples/curl/video-generation.sh) | [`video-generation.mjs`](examples/node/video-generation.mjs) | [`video_generation.py`](examples/python/video_generation.py) |
+| Effect discovery and task | [`effect-task.sh`](examples/curl/effect-task.sh) | [`effect-task.mjs`](examples/node/effect-task.mjs) | [`effect_task.py`](examples/python/effect_task.py) |
 | Poll a task | [`poll-task.sh`](examples/curl/poll-task.sh) | reference client | reference client |
 | Upload a file | [`upload-file.sh`](examples/curl/upload-file.sh) | [`upload-file.mjs`](examples/node/upload-file.mjs) | [`upload_file.py`](examples/python/upload_file.py) |
 | Receive webhooks | — | [`webhook-server.mjs`](examples/node/webhook-server.mjs) | — |
@@ -128,6 +149,8 @@ verification requires Node.js 20.19+ or 22.12+.
 ```bash
 node examples/node/music-video.mjs
 node examples/node/ecommerce-video.mjs
+node examples/node/image-generation.mjs
+node examples/node/video-generation.mjs
 node examples/node/realtime-session.mjs
 ```
 
@@ -143,6 +166,8 @@ Requires Python 3.11 or newer and uses only the standard library.
 ```bash
 python3 examples/python/music_video.py
 python3 examples/python/ecommerce_video.py
+python3 examples/python/image_generation.py
+python3 examples/python/video_generation.py
 python3 examples/python/realtime_session.py
 ```
 
@@ -154,10 +179,16 @@ The matching reference client is at
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `GET` | `/v1/workflows` | List available workflows |
+| `GET` | `/v1/media/models` | List stable image and video model aliases |
+| `POST` | `/v1/images/tasks` | Create a model-specific image task |
+| `POST` | `/v1/videos/tasks` | Create a model-specific video task |
+| `GET` | `/v1/effects` | List active versioned Effects |
+| `GET` | `/v1/effects/{effect_id}` | Read one Effect's exact input contract |
+| `POST` | `/v1/effects/tasks` | Create an Effect task |
 | `POST` | `/v1/music-video/tasks` | Create a Music Video task |
 | `POST` | `/v1/ecommerce-video/tasks` | Create an Ecommerce Video task |
 | `GET` | `/v1/tasks/{task_id}` | Poll task status and output |
-| `GET` | `/v1/usage` | Read usage, credits, and concurrency |
+| `GET` | `/v1/usage` | Read USD balance, usage, and concurrency |
 | `POST` | `/v1/realtime/sessions` | Create a short-lived Realtime Video session |
 | `GET/DELETE` | `/v1/realtime/sessions/{session_id}` | Inspect or close a Realtime Video session |
 | `POST` | `/v1/files` | Upload local workflow inputs |
@@ -198,8 +229,8 @@ BeatAPI uses real HTTP status codes and a stable public error envelope:
 ```
 
 Log the `request_id` when asking for support. Retry network errors and selected
-`5xx` responses with backoff. Do not blindly retry validation, authentication,
-credit, or concurrency errors.
+`5xx` responses with backoff. Do not blindly retry balance, validation,
+authentication, or concurrency errors.
 
 ## Webhooks
 
