@@ -2,6 +2,9 @@
   "data": {
     "id": "task_8K2qA",
     "object": "task",
+    "task_kind": "workflow",
+    "capability_id": "music-video",
+    "capability_version": 1,
     "workflow": "music-video",
     "status": "succeeded",
     "stage": "succeeded",
