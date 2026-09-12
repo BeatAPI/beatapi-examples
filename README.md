@@ -17,6 +17,10 @@ short-lived Realtime Video sessions that connect browser media through
 
 The primary launch route is `POST /v1/music-video/tasks`.
 
+The same repository also includes the provider-neutral capability and Social
+Data contract. Use `data:<action-id>` after Search and Inspect; the provider
+account is never part of the public request.
+
 ```text
 Create task -> queued/processing -> succeeded/failed -> hosted output
 ```
@@ -148,6 +152,18 @@ python3 examples/python/realtime_session.py
 
 The matching reference client is at
 [`examples/python/beatapi.py`](examples/python/beatapi.py).
+
+### Social Data
+
+```bash
+curl https://api.beatapi.io/v1/social-data/call \
+  -H "Authorization: Bearer $BEATAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"douyin.web.fetch_one_video","params":{"aweme_id":"7364837462110"}}'
+```
+
+For a model-neutral flow, call `POST /v1/capabilities/search`, inspect the
+returned `data:<action-id>`, and run it with `POST /v1/capabilities/run`.
 
 ## Public API
 
