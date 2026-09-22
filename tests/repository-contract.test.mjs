@@ -9,6 +9,9 @@ const requiredFiles = [
   "CODE_OF_CONDUCT.md",
   "SECURITY.md",
   "openapi/beatapi.yaml",
+  "examples/curl/capabilities.sh",
+  "examples/node/capabilities.mjs",
+  "examples/python/capabilities.py",
   "examples/curl/music-video.sh",
   "examples/curl/realtime-session.sh",
   "examples/node/music-video.mjs",
@@ -19,6 +22,7 @@ const requiredFiles = [
   "examples/node/webhook-server.mjs",
   "fixtures/task-succeeded.json",
   "integrations/n8n/beatapi-music-video.json",
+  "integrations/muse/README.md",
   ".github/dependabot.yml",
   ".github/pull_request_template.md",
   ".github/workflows/live-smoke.yml",
@@ -43,6 +47,8 @@ test("documents the public API without internal implementation names", async () 
   const readme = await readFile("README.md", "utf8").catch(() => "");
 
   assert.match(readme, /https:\/\/api\.beatapi\.io/);
+  assert.match(readme, /POST` \| `\/v1\/capabilities\/search/);
+  assert.match(readme, /https:\/\/beatapi\.io\/mcp/);
   assert.match(readme, /POST \/v1\/music-video\/tasks/);
   assert.match(readme, /`POST` \| `\/v1\/realtime\/sessions`/);
   assert.doesNotMatch(readme, /ShipAny|Hyperdrive|Supabase|Upstash|Vidu/i);

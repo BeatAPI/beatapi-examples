@@ -1,21 +1,55 @@
-# BeatAPI
+# BeatAPI Examples
 
-Official runnable examples for BeatAPI async workflows and Realtime Video sessions.
+Official runnable examples for BeatAPI's Model, Data, and Workflow capabilities.
+Use one BeatAPI key with text, image, video, Social Data, Effects, Realtime,
+and production workflow APIs.
 
 [![Verify examples](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml)
 
 [Website](https://beatapi.io/) ·
 [API documentation](https://docs.beatapi.io/) ·
+[Agent setup](https://beatapi.io/SKILL.md) ·
 [Realtime Video documentation](https://docs.beatapi.io/realtime-video) ·
 [Music Video Playground](https://beatapi.io/music-video-api) ·
 [Ecommerce Video Playground](https://beatapi.io/ecommerce-video-api)
 
-BeatAPI gives product teams one server-side API key for two integration shapes:
-async Music Video and Ecommerce Video workflows that return hosted output, and
-short-lived Realtime Video sessions that connect browser media through
-`@beatapi/realtime`.
+The live catalog is discovered at runtime instead of copied into this
+repository. As verified on 2026-09-22, it exposed 60 Model capabilities,
+1,000+ Data actions, and three published Workflows. Those counts and IDs can
+change independently of this repository, so integrations should always Search
+and Inspect before execution.
 
-The primary launch route is `POST /v1/music-video/tasks`.
+## Discover the current capability catalog
+
+BeatAPI exposes a stable three-operation loop across Models, Data, and
+Workflows:
+
+```text
+Search -> Inspect -> Run (or call the inspected direct API)
+```
+
+Run the read-only catalog walkthroughs:
+
+```bash
+bash examples/curl/capabilities.sh
+node examples/node/capabilities.mjs
+python3 examples/python/capabilities.py
+```
+
+Search and Inspect on `https://api.beatapi.io` are anonymous catalog
+operations. Set `BEATAPI_API_KEY` to add a read-only connection check. Do not
+start a paid operation until Inspect confirms the input, price, validation
+state, and execution strategy.
+
+For an Agent host, connect the Hosted MCP endpoint at
+`https://beatapi.io/mcp` with a private Bearer API key. It exposes
+`capabilities_search`, `capabilities_inspect`, and `capabilities_run`. See the
+[Muse connector guide](integrations/muse/README.md) for the review-safe setup.
+
+## Workflow quickstart
+
+The primary asynchronous workflow example remains
+`POST /v1/music-video/tasks`.
 
 ```text
 Create task -> queued/processing -> succeeded/failed -> hosted output
@@ -110,6 +144,7 @@ published launch checks are complete.
 
 | Example | cURL | Node.js | Python |
 | --- | --- | --- | --- |
+| Search and inspect capabilities | [`capabilities.sh`](examples/curl/capabilities.sh) | [`capabilities.mjs`](examples/node/capabilities.mjs) | [`capabilities.py`](examples/python/capabilities.py) |
 | Music Video task | [`music-video.sh`](examples/curl/music-video.sh) | [`music-video.mjs`](examples/node/music-video.mjs) | [`music_video.py`](examples/python/music_video.py) |
 | Ecommerce Video task | [`ecommerce-video.sh`](examples/curl/ecommerce-video.sh) | [`ecommerce-video.mjs`](examples/node/ecommerce-video.mjs) | [`ecommerce_video.py`](examples/python/ecommerce_video.py) |
 | Poll a task | [`poll-task.sh`](examples/curl/poll-task.sh) | reference client | reference client |
@@ -153,6 +188,16 @@ The matching reference client is at
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
+| `POST` | `/v1/capabilities/search` | Discover current Model, Data, and Workflow capabilities |
+| `POST` | `/v1/capabilities/inspect` | Read the selected capability contract, validation state, and execution route |
+| `POST` | `/v1/capabilities/run` | Start a Run-capable contract or retrieve asynchronous status |
+| `GET` | `/v1/models` | List the authenticated key's text models |
+| `POST` | `/v1/responses` | Run a text model through the preferred compatibility interface |
+| `GET` | `/v1/media/models` | List current image and video model contracts |
+| `POST` | `/v1/images/tasks` | Create a model-specific image task |
+| `POST` | `/v1/videos/tasks` | Create a model-specific video task |
+| `GET/POST` | `/v1/effects` and `/v1/effects/tasks` | Discover and run published Effects |
+| `POST` | `/v1/social-data/call` | Execute an inspected Social Data action |
 | `GET` | `/v1/workflows` | List available workflows |
 | `POST` | `/v1/music-video/tasks` | Create a Music Video task |
 | `POST` | `/v1/ecommerce-video/tasks` | Create an Ecommerce Video task |
@@ -236,6 +281,7 @@ node examples/node/webhook-server.mjs
 
 ## Integration guides
 
+- [Muse Hosted MCP connector](integrations/muse/README.md)
 - [n8n guide and importable bounded-polling workflow](integrations/n8n/README.md)
 - [Postman](integrations/postman/README.md)
 - [Sanitized response fixtures](fixtures/)

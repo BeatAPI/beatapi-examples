@@ -40,6 +40,42 @@ export async function runLiveSmoke({
     throw new Error("Workflow discovery returned an unexpected response.");
   }
 
+  const searchResponse = await fetchImpl(
+    `${normalizedBaseUrl}/v1/capabilities/search`,
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ kind: "model", limit: 5 }),
+    },
+  );
+  const searchPayload = await readJson(searchResponse, "Capability search");
+  const candidates = searchPayload?.data?.data;
+  const reference = candidates?.find((item) =>
+    item?.reference?.startsWith("model:"),
+  )?.reference;
+  if (searchPayload?.data?.object !== "capability.list" || !reference) {
+    throw new Error("Capability search returned an unexpected response.");
+  }
+
+  const inspectResponse = await fetchImpl(
+    `${normalizedBaseUrl}/v1/capabilities/inspect`,
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ reference }),
+    },
+  );
+  const inspectPayload = await readJson(inspectResponse, "Capability inspect");
+  if (inspectPayload?.data?.reference !== reference) {
+    throw new Error("Capability inspect returned an unexpected response.");
+  }
+
   let authenticatedUsageChecked = false;
   if (apiKey) {
     const usageResponse = await fetchImpl(`${normalizedBaseUrl}/v1/usage`, {
@@ -57,6 +93,8 @@ export async function runLiveSmoke({
 
   return {
     workflowCount: workflows.length,
+    capabilityCount: candidates.length,
+    inspectedReference: reference,
     authenticatedUsageChecked,
   };
 }
@@ -64,7 +102,7 @@ export async function runLiveSmoke({
 async function main() {
   const result = await runLiveSmoke();
   console.log(
-    `Live smoke passed: ${result.workflowCount} workflows; authenticated usage ${
+    `Live smoke passed: ${result.workflowCount} workflows; ${result.capabilityCount} capability candidates; inspected ${result.inspectedReference}; authenticated usage ${
       result.authenticatedUsageChecked ? "checked" : "skipped (no API key)"
     }.`,
   );
