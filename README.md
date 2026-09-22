@@ -1,8 +1,20 @@
+<p align="center">
+  <img src="assets/readme/cover.svg" alt="BeatAPI Examples — runnable proof for the Agent Router for Everything" width="100%" />
+</p>
+
+<p align="center">
+  <a href="https://beatapi.io/"><strong>Explore BeatAPI</strong></a> ·
+  <a href="https://beatapi.io/dashboard/apikeys">Create an API key</a> ·
+  <a href="https://docs.beatapi.io/">Docs</a> ·
+  <a href="#quick-start-discover-a-live-capability">Quick start</a>
+</p>
+
 # BeatAPI Examples
 
-Official runnable examples for BeatAPI's Model, Data, and Workflow capabilities.
-Use one BeatAPI key with text, image, video, Social Data, Effects, Realtime,
-and production workflow APIs.
+BeatAPI is the **Agent Router for Everything**: one route to Model, Data, Tool,
+and Workspace capabilities. This repository is the runnable proof layer—small
+cURL, Node.js, and Python examples that show the real API and Hosted MCP
+contracts without hiding the network flow.
 
 [![Verify examples](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml/badge.svg)](https://github.com/BeatAPI/beatapi-examples/actions/workflows/verify.yml)
 
@@ -19,10 +31,9 @@ repository. As verified on 2026-09-22, it exposed 60 Model capabilities,
 change independently of this repository, so integrations should always Search
 and Inspect before execution.
 
-## Discover the current capability catalog
+## Quick start: discover a live capability
 
-BeatAPI exposes a stable three-operation loop across Models, Data, and
-Workflows:
+BeatAPI exposes a stable three-operation loop across its capability catalog:
 
 ```text
 Search -> Inspect -> Run (or call the inspected direct API)
@@ -45,6 +56,18 @@ For an Agent host, connect the Hosted MCP endpoint at
 `https://beatapi.io/mcp` with a private Bearer API key. It exposes
 `capabilities_search`, `capabilities_inspect`, and `capabilities_run`. See the
 [Muse connector guide](integrations/muse/README.md) for the review-safe setup.
+
+## Where this repository fits
+
+```text
+Agent or developer -> runnable example -> BeatAPI -> Model · Data · Tool · Workspace
+```
+
+- **Model** routes text, image, video, audio, and realtime model capabilities.
+- **Data** currently includes the live Social Data catalog.
+- **Tool** includes executable APIs, Effects, workflows, CLI, and MCP surfaces.
+- **Workspace** is the shared project surface that Agents can operate through
+  compatible integrations; availability depends on the selected integration.
 
 ## Workflow quickstart
 
@@ -338,3 +361,7 @@ environment variable is present, it additionally verifies authenticated
 Original example code in this repository is available under the
 [MIT License](LICENSE). Use of the hosted BeatAPI service is governed by the
 [BeatAPI Terms of Service](https://beatapi.io/terms-of-service).
+
+<p align="center">
+  Built by <a href="https://beatapi.io/"><strong>BeatAPI</strong></a> — Agent Router for Everything.
+</p>

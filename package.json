@@ -2,7 +2,7 @@
   "name": "beatapi-examples",
   "version": "0.1.0",
   "private": true,
-  "description": "Runnable examples for BeatAPI models, Social Data, workflows, and Hosted MCP.",
+  "description": "Runnable examples for BeatAPI, the Agent Router for Everything across Model, Data, Tool, and Workspace.",
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
