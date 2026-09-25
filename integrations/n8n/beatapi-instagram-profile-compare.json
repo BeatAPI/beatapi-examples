@@ -1,0 +1,247 @@
+{
+  "id": "42628c4f-accc-4e0d-888d-15871e14933c",
+  "name": "Compare public Instagram profiles with BeatAPI Social Data and a text model",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Compare public Instagram profiles with BeatAPI Social Data and a text model\n\nFor brand and creator research: fetch two public Instagram profiles by username, compare their bios and visible follower/following counts, and generate a short research draft. Change usernames and model in Configure Inputs. The workflow does not log into Instagram or modify either account. If a profile is unavailable, the social request fails visibly instead of inventing data.\n\nSetup: create one n8n Header Auth credential with header name Authorization and value Bearer <your BeatAPI key>. Assign it to both HTTP Request nodes. Edit Configure Inputs, then run manually. The social data call and text model call use BeatAPI credits. The workflow only reads public social data and returns a draft research summary; check the cited source items before reuse. The export contains no credential or personal account ID. Social Data API: https://docs.beatapi.io/social-data-catalog",
+        "height": 360,
+        "width": 1120
+      },
+      "id": "03e58c5a-efa3-41c3-b4df-de8aae03b76f",
+      "name": "How to use this template",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        50
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "84d6ac46-7856-4db6-a899-ef0e47550095",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1572e63b-8adf-4996-8f15-9c65ae89fe99",
+              "name": "usernames",
+              "value": "instagram,n8n_io",
+              "type": "string"
+            },
+            {
+              "id": "b6790faf-03e3-4e4b-9ae9-5652e84fa241",
+              "name": "model",
+              "value": "gpt-5.6-luna",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3029a039-4717-433e-b1e2-34de14c94f39",
+      "name": "Configure Inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const names = $('Configure Inputs').first().json.usernames.split(',').map((name) => name.trim().replace(/^@/, '')).filter(Boolean);\nif (names.length !== 2 || names[0] === names[1]) throw new Error('Provide two different public Instagram usernames, separated by a comma.');\nreturn names.map((username) => ({ json: { username } }));"
+      },
+      "id": "6c0ab1bb-d943-4ae5-9cb5-2fea333e8d76",
+      "name": "Prepare Social Data Requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beatapi.io/v1/capabilities/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "BeatAPI-n8n/0.2.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { reference: 'data:instagram.fetch_user_info_by_username_v3', input: { username: $json.username }, view: 'preview' } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "e9738093-1970-4d4f-8924-fad48419194b",
+      "name": "Fetch Public Social Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.all().map((item) => item.json);\nif (results.length !== 2 || results.some((result) => result.status !== 'succeeded' || !result.data)) throw new Error('Both public Instagram profiles must return data.');\nconst profiles = results.map((result) => { const d = result.data; return { username: d.username, name: d.full_name, biography: d.biography, followers: d.follower_count, following: d.following_count, category: d.category, is_private: d.is_private }; });\nreturn [{ json: { source: 'Instagram public profile lookup', source_count: profiles.length, request_ids: results.map((result) => result.request_id), prompt: JSON.stringify({ profiles }) } }];"
+      },
+      "id": "e32f9812-2d93-4714-bbcf-1fb6074f66b4",
+      "name": "Prepare Evidence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beatapi.io/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "BeatAPI-n8n/0.2.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: $('Configure Inputs').first().json.model, messages: [{ role: 'system', content: \"Compare these two public Instagram profile snapshots. State the observed bio, category and follower/following numbers exactly, then identify plausible positioning differences as inferences. Do not claim engagement, growth, or performance from profile metadata alone.\" }, { role: 'user', content: $json.prompt }] } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "b54bb680-0192-4841-be96-ef83ae60a5ea",
+      "name": "Summarize with BeatAPI Text Model",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const answer = $input.first().json.choices?.[0]?.message?.content;\nif (!answer) throw new Error('The text model returned no message content.');\nconst evidence = $('Prepare Evidence').first().json;\nreturn [{ json: { summary: answer, source: evidence.source, source_count: evidence.source_count, request_ids: evidence.request_ids } }];"
+      },
+      "id": "900c93f9-0702-4999-a3bc-4a80d983c354",
+      "name": "Return Research Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1620,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configure Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Inputs": {
+      "main": [
+        [
+          {
+            "node": "Prepare Social Data Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Public Social Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Evidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Evidence": {
+      "main": [
+        [
+          {
+            "node": "Summarize with BeatAPI Text Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize with BeatAPI Text Model": {
+      "main": [
+        [
+          {
+            "node": "Return Research Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Social Data Requests": {
+      "main": [
+        [
+          {
+            "node": "Fetch Public Social Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "04078504-0ac3-4d6f-9ffc-95b2d16c74c0",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

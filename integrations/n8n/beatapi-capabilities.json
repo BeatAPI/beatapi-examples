@@ -1,0 +1,142 @@
+{
+  "name": "BeatAPI Capabilities - Search, Inspect, Run",
+  "id": "bf388867-bf39-4ce0-a6d5-063281420659",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# BeatAPI capabilities\n\nBind a Header Auth credential named BeatAPI API Key with header `Authorization` and value `Bearer <your BeatAPI key>` to the HTTP node. Start with `operation: search` (free). Edit the Configure node to inspect a returned reference, then run with input matching that reference's `input_schema`. A start can spend credits. For image/video tasks, copy `task_id`, set `operation: status`, and run again after the advised delay; stop at succeeded/failed. For large social data, use `operation: result` and `request_id` within one hour. Never store keys in this export.",
+        "height": 330,
+        "width": 1000
+      },
+      "id": "beatapi-capabilities-note",
+      "name": "Read Me",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        80
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "beatapi-capabilities-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Edit one operation at a time. Search and Inspect are free; start may spend credits.\nreturn [{ json: { operation: 'search', query: 'image model', kind: 'model', reference: '', input: {}, task_id: '', request_id: '', view: 'preview' } }];"
+      },
+      "id": "beatapi-capabilities-configure",
+      "name": "Configure Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $input.first().json;\nconst op = cfg.operation;\nlet path;\nlet body;\nif (op === 'search') {\n  path = 'search';\n  body = { query: cfg.query || '', ...(cfg.kind ? { kind: cfg.kind } : {}) };\n} else if (op === 'inspect') {\n  if (!cfg.reference) throw new Error('Copy a reference from Search first.');\n  path = 'inspect';\n  body = { reference: cfg.reference };\n} else if (op === 'start') {\n  if (!cfg.reference || !cfg.input || typeof cfg.input !== 'object' || Array.isArray(cfg.input)) throw new Error('Provide an inspected reference and input object.');\n  path = 'run';\n  body = { reference: cfg.reference, operation: 'start', input: cfg.input, view: cfg.view || 'preview' };\n} else if (op === 'status') {\n  if (!cfg.reference || !cfg.task_id) throw new Error('Reference and task_id are required.');\n  path = 'run';\n  body = { reference: cfg.reference, operation: 'status', task_id: cfg.task_id, view: cfg.view || 'preview' };\n} else if (op === 'result') {\n  if (!cfg.reference || !cfg.request_id) throw new Error('Reference and request_id are required.');\n  path = 'run';\n  body = { reference: cfg.reference, operation: 'result', request_id: cfg.request_id, view: cfg.view || 'preview' };\n} else {\n  throw new Error('Operation must be search, inspect, start, status, or result.');\n}\nreturn [{ json: { url: `https://api.beatapi.io/v1/capabilities/${path}`, body } }];"
+      },
+      "id": "beatapi-capabilities-build",
+      "name": "Build Capability Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "BeatAPI-n8n/0.2.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "beatapi-capabilities-http",
+      "name": "BeatAPI Capability API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configure Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Request": {
+      "main": [
+        [
+          {
+            "node": "Build Capability Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Capability Request": {
+      "main": [
+        [
+          {
+            "node": "BeatAPI Capability API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cc86a620-39d0-425c-981b-3146e11a6828",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
