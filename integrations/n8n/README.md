@@ -1,5 +1,25 @@
 # n8n
 
+## All BeatAPI capabilities
+
+Import [`beatapi-capabilities.json`](./beatapi-capabilities.json) for a reusable
+Search → Inspect → Run workflow. It discovers current text, image, video,
+social-data, and web capabilities instead of hard-coding a model list. In the
+**Configure Request** node, choose `search`, `inspect`, `start`, `status`, or
+`result`. Search and Inspect are free; starting a run may use BeatAPI credits.
+
+Create a Header Auth credential in n8n with header name `Authorization` and
+value `Bearer <your BeatAPI API key>`, then assign it to the **BeatAPI Capability
+API** HTTP Request node. The export does not contain an API key or a credential
+ID. Inspect the selected reference before filling the `input` object for a
+start. For image and video, poll the returned `task_id` with `status`; for a
+stored synchronous result, use its `request_id` with `result`.
+
+The workflow uses built-in nodes, so it does not require an n8n community-node
+installation. It is an importable workflow, not a native BeatAPI node.
+
+## Music video example
+
 BeatAPI works with standard n8n HTTP Request nodes. A minimal workflow uses:
 
 ```text
