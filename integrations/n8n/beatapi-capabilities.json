@@ -1,5 +1,6 @@
 {
   "name": "BeatAPI Capabilities - Search, Inspect, Run",
+  "id": "bf388867-bf39-4ce0-a6d5-063281420659",
   "nodes": [
     {
       "parameters": {
@@ -74,7 +75,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "jsonBody": "={{ $json.body }}",
         "options": {
           "response": {
             "response": {
@@ -132,6 +133,10 @@
   "active": false,
   "settings": {
     "executionOrder": "v1"
+  },
+  "versionId": "cc86a620-39d0-425c-981b-3146e11a6828",
+  "meta": {
+    "templateCredsSetupCompleted": false
   },
   "tags": []
 }
