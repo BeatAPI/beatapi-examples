@@ -165,6 +165,12 @@ published launch checks are complete.
 
 ## Examples
 
+Framework integrations: [Mastra](integrations/mastra/README.md) has a runnable
+agent using an account-selected text model; [Pi](integrations/pi/README.md)
+has a user-managed OpenAI Responses provider configuration.
+The separately maintained [Pi BeatAPI Provider](https://github.com/BeatAPI/pi-beatapi-provider)
+offers a GitHub-installable extension with a scoped three-model catalog.
+
 | Example | cURL | Node.js | Python |
 | --- | --- | --- | --- |
 | Search and inspect capabilities | [`capabilities.sh`](examples/curl/capabilities.sh) | [`capabilities.mjs`](examples/node/capabilities.mjs) | [`capabilities.py`](examples/python/capabilities.py) |
