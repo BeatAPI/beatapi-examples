@@ -65,10 +65,12 @@ class BeatAPIClient:
         method: str = "GET",
         body: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
+        raw: bool = False,
     ) -> Any:
         data = json.dumps(body).encode() if body is not None else None
         request_headers = {
             "Accept": "application/json",
+            "User-Agent": "BeatAPI-Examples/2026-10-02",
             "Authorization": f"Bearer {self.api_key}",
             **(headers or {}),
         }
@@ -83,7 +85,13 @@ class BeatAPIClient:
         )
 
         try:
-            response = self.transport(request)
+            if self.transport is urllib.request.urlopen:
+                class NoRedirect(urllib.request.HTTPRedirectHandler):
+                    def redirect_request(self, req, fp, code, msg, headers, newurl):
+                        return None
+                response = urllib.request.build_opener(NoRedirect()).open(request, timeout=95)
+            else:
+                response = self.transport(request)
             with response:
                 status = response.status
                 payload = json.loads(response.read().decode() or "{}")
@@ -103,7 +111,15 @@ class BeatAPIClient:
                 details=public_error.get("details"),
             )
 
-        return payload.get("data")
+        return payload if raw else payload.get("data")
+
+    def run_capability(self, request: dict[str, Any]) -> dict[str, Any]:
+        return self.request("/v1/capabilities/run", method="POST", body=request, raw=True)
+
+    def web_call(self, action: str, input_data: dict[str, Any]) -> dict[str, Any]:
+        if action not in ("search", "read", "map", "research"):
+            raise ValueError("Unknown Web action.")
+        return self.request(f"/v1/web/{action}", method="POST", body=input_data, raw=True)
 
     def create_music_video_task(self, input_data: dict[str, Any]) -> dict[str, Any]:
         return self.request(

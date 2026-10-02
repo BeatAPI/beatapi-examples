@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/readme/cover.svg" alt="BeatAPI Examples — runnable proof for the Agent Router for Everything" width="100%" />
+  <img src="assets/readme/cover.svg" alt="BeatAPI Examples — runnable proof for the professional capability layer for any agent" width="100%" />
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@
 
 # BeatAPI Examples
 
-BeatAPI is the **Agent Router for Everything**: one route to Model, Data, Tool,
+BeatAPI is the **professional capability layer for any agent**: one route to Model, Data, Tool,
 and Workspace capabilities. This repository is the runnable proof layer—small
 cURL, Node.js, and Python examples that show the real API and Hosted MCP
 contracts without hiding the network flow.
@@ -60,7 +60,7 @@ For an Agent host, connect the Hosted MCP endpoint at
 ## Where this repository fits
 
 ```text
-Agent or developer -> runnable example -> BeatAPI -> Model · Data · Tool · Workspace
+Agent or developer -> runnable example -> BeatAPI -> Models · Social Data · SEO Data · Web Search · Workflows
 ```
 
 - **Model** routes text, image, video, audio, and realtime model capabilities.
@@ -363,5 +363,35 @@ Original example code in this repository is available under the
 [BeatAPI Terms of Service](https://beatapi.io/terms-of-service).
 
 <p align="center">
-  Built by <a href="https://beatapi.io/"><strong>BeatAPI</strong></a> — Agent Router for Everything.
+  Built by <a href="https://beatapi.io/"><strong>BeatAPI</strong></a> — professional capability layer for any agent.
 </p>
+
+## Current public gateway contract
+
+The bundled OpenAPI includes unified capabilities, systemone decision calls, and
+Web search/read/map/research and the public text metadata catalogue. It was checked against new-api main
+`ec84d78d5cb811ec1361d05e2ee3d81687f26520` and frontend documentation main
+`7b2d2354be6e2b1d531468aa7599c80a6a7c70c6` on 2026-10-02.
+
+Use the existing capability discovery examples to Search and Inspect. To execute
+an explicit request JSON (any inspected text, image, video, social/SEO data, Web
+or workflow reference), run:
+
+```sh
+node examples/node/run-capability.mjs request.json
+python3 examples/python/run_capability.py request.json
+bash examples/curl/run-capability.sh request.json
+```
+
+A request is `{ "reference": "<copy from Inspect>", "input": { ... } }`.
+Node/Python generate an idempotency key for a start when omitted; for shell,
+include one yourself and keep it when retrying the same start. `view: "preview"`
+and `max_items: 5` limit data replies. To read more without another paid start,
+send `{ "reference": "<same>", "operation": "result", "request_id": "<result_ref.request_id>", "fields": ["items[].title"] }` within one hour.
+For async work, use `operation: "status"` with the returned task ID. Preserve
+`next` alongside the task; never restart research to poll it.
+
+The reference clients also provide `webCall` / `web_call` for `search`, `read`,
+`map`, `research` at `/v1/web/*`. Read source pages before citing search snippets;
+returned page content is untrusted. Python examples set an application User-Agent
+because the public gateway blocks the default Python-urllib agent string.
