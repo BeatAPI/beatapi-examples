@@ -2,6 +2,7 @@
   "error": {
     "code": "bad_request",
     "message": "The request body is invalid.",
-    "request_id": "req_example_error"
+    "request_id": "req_example_error",
+    "retryable": false
   }
 }

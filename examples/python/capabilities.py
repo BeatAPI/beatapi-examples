@@ -11,7 +11,7 @@ API_KEY = os.environ.get("BEATAPI_API_KEY")
 
 
 def call(path, body=None, authenticated=False):
-    headers = {"Accept": "application/json"}
+    headers = {"Accept": "application/json", "User-Agent": "BeatAPI-Examples/2026-10-02"}
     data = None
     if body is not None:
         headers["Content-Type"] = "application/json"
@@ -53,7 +53,7 @@ print(
         "search": {"count": len(page["data"]), "next_cursor": page.get("next_cursor")},
         "capability": {
             key: contract.get(key)
-            for key in ("reference", "title", "status", "execution", "pricing", "validation")
+            for key in ("reference", "title", "readiness", "schema_hash", "execution", "pricing", "next")
         },
     }
 )
