@@ -1,0 +1,229 @@
+{
+  "id": "a2919b4e-458b-4680-a75f-8d24d5a327ed",
+  "name": "Find themes in public YouTube comments with BeatAPI Social Data and a text model",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Find themes in public YouTube comments with BeatAPI Social Data and a text model\n\nFor creators and product teams: fetch a preview of public comments for one YouTube video, extract comment text and likes, and draft themes with direct comment IDs. Replace the sample video ID in Configure Inputs with your own public video. The preview includes at most ten comments; use the returned request ID to fetch more within one hour if needed. This workflow reads comments only and does not reply or publish.\n\nSetup: create one n8n Header Auth credential with header name Authorization and value Bearer <your BeatAPI key>. Assign it to both HTTP Request nodes. Edit Configure Inputs, then run manually. The social data call and text model call use BeatAPI credits. The workflow only reads public social data and returns a draft research summary; check the cited source items before reuse. The export contains no credential or personal account ID. Social Data API: https://docs.beatapi.io/social-data-catalog",
+        "height": 360,
+        "width": 1120
+      },
+      "id": "27bbd201-e561-43b5-a333-55451cfdf899",
+      "name": "How to use this template",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        50
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "4cbeb31c-c7ed-4fca-bb98-7ca844411096",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "387108bc-df28-4214-b1fa-dfd509c8cb72",
+              "name": "video_id",
+              "value": "dQw4w9WgXcQ",
+              "type": "string"
+            },
+            {
+              "id": "5bf458e7-5d17-40c7-a451-ba90b7854171",
+              "name": "sort_by",
+              "value": "top",
+              "type": "string"
+            },
+            {
+              "id": "e998a57f-273d-4191-baf8-5a758fb923a0",
+              "name": "model",
+              "value": "gpt-5.6-luna",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ef439f28-2c80-47e3-80cb-89fb87be2e55",
+      "name": "Configure Inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beatapi.io/v1/capabilities/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "BeatAPI-n8n/0.2.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { reference: 'data:youtube.web_v2.get_video_comments', input: { video_id: $json.video_id, sort_by: $json.sort_by, language_code: 'en-US', need_format: true }, view: 'preview' } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "13dba108-e34b-494b-9c87-b33934bec92f",
+      "name": "Fetch Public Social Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\nif (result.status !== 'succeeded' || !Array.isArray(result.items)) throw new Error('YouTube comments did not return preview items.');\nconst comments = result.items.map((comment) => ({ id: comment.comment_id, author: comment.author?.display_name, content: comment.content, likes: comment.like_count, published: comment.published_time }));\nreturn [{ json: { source: 'YouTube public comments', source_count: comments.length, request_ids: [result.request_id], prompt: JSON.stringify({ video_id: $('Configure Inputs').first().json.video_id, comments }) } }];"
+      },
+      "id": "6c017bfb-b171-451b-a6c3-c33fdee7a83a",
+      "name": "Prepare Evidence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beatapi.io/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "BeatAPI-n8n/0.2.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: $('Configure Inputs').first().json.model, messages: [{ role: 'system', content: \"Identify recurring themes and questions in these public YouTube comments. Cite comment IDs for each observation. This is a small preview sample, so do not infer audience-wide sentiment or make unsupported numerical claims.\" }, { role: 'user', content: $json.prompt }] } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "ac8ae366-5d36-404a-9f04-ba83c44b7dd7",
+      "name": "Summarize with BeatAPI Text Model",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const answer = $input.first().json.choices?.[0]?.message?.content;\nif (!answer) throw new Error('The text model returned no message content.');\nconst evidence = $('Prepare Evidence').first().json;\nreturn [{ json: { summary: answer, source: evidence.source, source_count: evidence.source_count, request_ids: evidence.request_ids } }];"
+      },
+      "id": "d2f218da-8896-479c-bbaa-96173db24c0e",
+      "name": "Return Research Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configure Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Inputs": {
+      "main": [
+        [
+          {
+            "node": "Fetch Public Social Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Public Social Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Evidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Evidence": {
+      "main": [
+        [
+          {
+            "node": "Summarize with BeatAPI Text Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize with BeatAPI Text Model": {
+      "main": [
+        [
+          {
+            "node": "Return Research Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c331b81b-3e97-4de9-b973-69e305a6df39",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
